@@ -1,0 +1,20 @@
+model:
+  lstm_units_1: 256      
+  lstm_units_2: 128      
+  dropout_rate: 0.333    
+  dense_units_1: 32       
+  dense_units_2: 32      
+  learning_rate: 0.0008919
+  batch_size: 16
+  epochs: 50            
+  seq_length: 30          
+  test_size: 0.2
+
+data:
+  train_file: train.csv
+  test_file: test.csv
+  store_file: store.csv
+
+mlflow:
+  experiment_name: rossmann_lstm_forecasting
+  model_name: rossmann_lstm
