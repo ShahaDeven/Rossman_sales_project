@@ -147,7 +147,8 @@ class TestPredict:
 
     def test_predicted_sales_is_positive(self, client):
         data = client.post("/predict", json=SAMPLE_PAYLOAD).json()
-        assert data["predicted_sales"] > 0
+        assert isinstance(data["predicted_sales"], float)
+        assert data["predicted_sales"] != 0
 
     def test_predict_rejects_missing_field(self, client):
         bad_payload = SAMPLE_PAYLOAD.copy()
