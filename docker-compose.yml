@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - predictions_data:/app/logs
+      - predictions_data:/app
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

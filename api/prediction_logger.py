@@ -7,8 +7,9 @@ from datetime import datetime
 # Logs every prediction to a SQLite database
 class PredictionLogger:
     def __init__(self):
-        self.db_path = "/app/logs/predictions.db"
-        os.makedirs("/app/logs", exist_ok=True)
+        self.root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        self.db_path = os.path.join(self.root_dir, "predictions.db")
+        os.makedirs(self.root_dir, exist_ok=True)
         self._init_db()
 
     def _init_db(self):
