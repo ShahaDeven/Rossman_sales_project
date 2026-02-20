@@ -1,118 +1,239 @@
-# 📈 Rossmann Store Sales Forecasting Agent
+# Rossmann Sales Forecasting — PyTorch LSTM
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue) 
-![Deep%20Learning](https://img.shields.io/badge/Deep%20Learning-LSTM-red) 
-![TensorFlow](https://img.shields.io/badge/TensorFlow-Keras-orange) 
-![Time%20Series](https://img.shields.io/badge/Time%20Series-Forecasting-green)
+Production ML pipeline for predicting Rossmann store daily sales using a PyTorch LSTM model, served via a REST API with a real-time monitoring dashboard.
 
-A production-style **time-series sales forecasting system** designed to predict daily retail sales for Rossmann stores using **LSTM-based deep learning models**.
-
-This project enables accurate short-term and mid-term sales forecasting to support inventory planning, staffing, and operational decision-making.
-
-Built on the **Rossmann Store Sales dataset**, this project demonstrates advanced **sequence modeling**, temporal feature engineering, hyperparameter tuning, and multi-horizon forecasting.
+![Python](https://img.shields.io/badge/Python-3.10-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-LSTM-EE4C2C) ![FastAPI](https://img.shields.io/badge/FastAPI-REST_API-009688) ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-ff4b4b) ![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2) ![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED) ![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF)
 
 ---
 
-## 🚀 Key Features
+## Overview
 
-### 🧠 Phase 1: Data Engineering & Preprocessing
-- **Dataset Integration:** Merges `train`, `test`, and `store` datasets into a unified analytical table.
-- **Outlier Handling:** Removes extreme sales and customer values using IQR-based filtering.
-- **Temporal Feature Engineering:** Extracts year, month, day, and ISO week from date fields.
-- **Categorical Encoding:** Encodes store type, assortment, and holiday indicators.
-- **Scaling:** Applies MinMax scaling to prepare data for neural sequence models.
+This project builds an end-to-end machine learning pipeline for the [Rossmann Store Sales](https://www.kaggle.com/c/rossmann-store-sales) dataset. It covers everything from model training to production serving.
 
----
-
-### 🤖 Phase 2: LSTM-Based Forecasting Model
-- **Sequence Modeling:** Converts tabular data into rolling 30-day time windows.
-- **Stacked LSTM Architecture:** Learns long-term temporal dependencies in sales patterns.
-- **Regularization:** Dropout layers to reduce overfitting.
-- **Early Stopping:** Prevents unnecessary training once validation loss plateaus.
+| Metric | Value |
+|---|---|
+| Test MAE | 543.25 |
+| Test RMSE | 787.83 |
+| Test R² | 0.9440 |
+| Inference Latency | ~7ms (GPU) |
 
 ---
 
-### 📊 Phase 3: Evaluation & Forecasting
-- **Robust Evaluation:** Assessed using MAE, RMSE, and R² metrics.
-- **Next-Day Forecasting:** Generates single-step sales predictions.
-- **Multi-Horizon Forecasting:** Produces 7-day and 30-day forward-looking forecasts.
-- **Visual Diagnostics:** Actual vs predicted plots and forecast horizon visualizations.
+## Project Structure
 
----
-
-### ⚡ Model Optimization
-- **Hyperparameter Tuning:** Optimized LSTM units, dropout rate, dense layers, learning rate, batch size, and epochs.
-- **Best Configuration Identified:** Balances predictive accuracy and generalization.
-
----
-
-## 🛠️ Tech Stack
-- **Programming Language:** Python 3.9+
-- **Deep Learning:** TensorFlow / Keras (LSTM)
-- **Machine Learning:** Scikit-learn
-- **Data Processing:** Pandas, NumPy
-- **Visualization:** Matplotlib, Seaborn
-- **Environment:** Jupyter Notebook
-
----
-
-## 📊 Model Performance
-
-### Best Model Evaluation
-```text
-MAE  : 945.18
-RMSE : 1415.43
-R²   : 0.8191
+```
+Roseman_sales/
+├── api/                        # FastAPI serving layer
+│   ├── main.py                 # API endpoints
+│   ├── schemas.py              # Pydantic request/response models
+│   ├── model_loader.py         # Model loading from MLflow
+│   └── prediction_logger.py   # Prediction logging to SQLite
+├── model/                      # Training code
+│   ├── train.py                # LSTM training script
+│   └── config.yaml             # Hyperparameters and settings
+├── monitoring/                 # Streamlit dashboard
+│   └── dashboard.py            # Monitoring + Try It Out UI
+├── tests/                      # Pytest test suite
+│   └── test_api.py
+├── .github/workflows/
+│   └── ci.yml                  # GitHub Actions CI/CD
+├── Dockerfile                  # API container
+├── Dockerfile.monitoring       # Dashboard container
+├── docker-compose.yml          # Run both services together
+├── mlflow.db                   # MLflow experiment tracking
+├── scaler.pkl                  # Feature scaler
+├── features.json               # Feature names list
+└── model_state_dict.pth        # Trained model weights
 ```
 
-### Best Hyperparameters
-```json
-{
-  "lstm_units": 256,
-  "dropout_rate": 0.333095499066527,
-  "dense_units_1": 32,
-  "dense_units_2": 32,
-  "learning_rate": 0.0008919224878354329,
-  "batch_size": 32,
-  "epochs": 11
-}
+---
+
+## Architecture
+
+```
+                    ┌─────────────────────┐
+                    │  Streamlit Dashboard│
+                    │  localhost:8501     │
+                    └────────┬────────────┘
+                             │ HTTP
+                    ┌────────▼────────────┐
+                    │   FastAPI REST API  │
+                    │   localhost:8000    │
+                    └────────┬────────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+    ┌─────────▼──────┐           ┌──────────▼──────┐
+    │  PyTorch LSTM  │           │   MLflow DB     │
+    │  model weights │           │   mlflow.db     │
+    └────────────────┘           └─────────────────┘
 ```
 
-## 📂 Project Structure
+---
+
+## Model
+
+The LSTM model is trained on 21 engineered features including store type, promotions, competition distance, and calendar features.
+
+**Architecture:**
+- LSTM layer 1 → 256 hidden units
+- Dropout (0.333)
+- LSTM layer 2 → 128 hidden units
+- Dropout (0.333)
+- Dense → 32 → 32 → 1
+- Log-transform on target (Sales), sequence length of 30
+
+**Features:**
+`Store`, `DayOfWeek`, `Customers`, `Open`, `Promo`, `StateHoliday`, `SchoolHoliday`, `StoreType`, `Assortment`, `CompetitionDistance`, `Promo2`, `Year`, `Month`, `Day`, `WeekOfYear`, `IsPromoMonth`, `IsWeekend`, `IsHoliday`, `IsMonthStart`, `IsMonthEnd`, `DaysSincePromo`
+
+---
+
+## Quickstart
+
+### Option 1 — Docker (recommended)
+
 ```bash
-Rossmann_sales_project/
-├── sales.py
-├── sales.ipynb
-├── train.csv
-├── test.csv
-├── store.csv
-├── requirements.txt
-└── README.md
+docker-compose up --build
 ```
 
-## ⚡ Installation & Setup
-1. Clone the Repository
-```bash
-git clone https://github.com/ShahaDeven/Rossman_sales_project.git
-cd Rossman_sales_project
-```
+- API docs → http://localhost:8000/docs
+- Dashboard → http://localhost:8501
 
-2. Create Virtual Environment
-```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Mac/Linux
-source venv/bin/activate
-```
+### Option 2 — Local
 
-3. Install Dependencies
+**Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 📝 Future Roadmap
-- Walk-forward validation for time-series robustness
-- Store-level or cluster-specific forecasting
-- Probabilistic forecasting with confidence intervals
-- Streamlit-based interactive forecasting dashboard
+**Start the API:**
+```bash
+uvicorn api.main:app --reload --port 8000
+```
+
+**Start the dashboard** (separate terminal):
+```bash
+streamlit run monitoring/dashboard.py
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | API status, model version, uptime |
+| `GET` | `/model-info` | Model metadata and test metrics |
+| `POST` | `/predict` | Predict daily sales for a store |
+| `GET` | `/predictions/recent` | Last N logged predictions |
+| `GET` | `/predictions/stats` | Aggregate stats for monitoring |
+
+**Example prediction request:**
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "Store": 1,
+    "DayOfWeek": 5,
+    "Customers": 555,
+    "Open": 1,
+    "Promo": 1,
+    "StateHoliday": "0",
+    "SchoolHoliday": 1,
+    "StoreType": "c",
+    "Assortment": "a",
+    "CompetitionDistance": 1270.0,
+    "Promo2": 0,
+    "Year": 2015,
+    "Month": 7,
+    "Day": 31,
+    "WeekOfYear": 31,
+    "IsPromoMonth": 0,
+    "IsWeekend": 0,
+    "IsHoliday": 1,
+    "IsMonthStart": 0,
+    "IsMonthEnd": 1,
+    "DaysSincePromo": 3
+  }'
+```
+
+**Response:**
+```json
+{
+  "predicted_sales": 5351.96,
+  "model_version": "1",
+  "inference_latency_ms": 7.2,
+  "timestamp": "2026-02-20T15:00:00"
+}
+```
+
+---
+
+## Monitoring Dashboard
+
+The Streamlit dashboard at `http://localhost:8501` has two tabs:
+
+**📊 Monitoring**
+- API status, model version, uptime
+- Average and P95 inference latency
+- Predictions per hour (last 24h)
+- Latency distribution histogram
+- Predicted sales over time
+- Recent predictions table
+
+**🧪 Try It Out**
+- 5 preset scenarios (Busy Friday, Holiday Weekend, Christmas Eve, etc.)
+- Interactive sliders and dropdowns for all 21 features
+- Auto-calculated fields (WeekOfYear, IsWeekend, IsHoliday, etc.)
+- Live prediction results with sales, latency, and model version
+
+---
+
+## Training
+
+Training requires the Rossmann dataset files (`train.csv`, `test.csv`, `store.csv`) placed in `model/data/`.
+
+```bash
+python model/train.py
+```
+
+Experiment metrics, parameters, and model artifacts are tracked in MLflow:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+---
+
+## CI/CD
+
+GitHub Actions pipeline runs on every push:
+
+- **Tests** — 13 pytest tests covering all API endpoints and input validation
+- **Docker Build** — builds both images on push to `main`
+
+Tests use dummy model artifacts so no real weights are needed in CI.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Model | PyTorch LSTM |
+| Experiment Tracking | MLflow |
+| API | FastAPI + Uvicorn |
+| Validation | Pydantic |
+| Dashboard | Streamlit + Plotly |
+| Containerization | Docker + docker-compose |
+| CI/CD | GitHub Actions |
+| Prediction Logging | SQLite |
+
+---
+
+## Requirements
+
+- Python 3.10
+- CUDA-compatible GPU (optional, CPU fallback supported)
+- Docker Desktop (for containerized setup)
