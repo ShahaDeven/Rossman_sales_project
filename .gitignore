@@ -48,6 +48,9 @@ mlartifacts/
 mlflow.db
 scaler.pkl
 
+predictions.db
+model_state_dict.pth
+
 # Logs & Predictions
 logs/
 *.log

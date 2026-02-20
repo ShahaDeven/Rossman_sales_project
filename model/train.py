@@ -8,11 +8,9 @@ import yaml
 import mlflow
 import mlflow.pytorch
 from mlflow.models.signature import infer_signature
-
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -135,7 +133,6 @@ def preprocess(merged_df):
 
 
 # 3. LOG-TRANSFORM + SCALE + SEQUENCES
-#    Disk cache — only builds sequences once
 def scale_and_sequence(df, seq_length=30):
     cache_dir    = os.path.join(os.path.dirname(__file__), "data", "cache")
     cache_X      = os.path.join(cache_dir, f"X_seq{seq_length}.npy")
