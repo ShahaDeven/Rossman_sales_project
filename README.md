@@ -232,6 +232,23 @@ Tests use dummy model artifacts so no real weights are needed in CI.
 
 ---
 
+## Challenges & Solutions
+
+**Cross-platform MLflow artifact paths**
+MLflow stores absolute file paths in its database when saving model artifacts. Transferring `mlflow.db` from a Linux server to Windows caused `OSError` on loading because the paths pointed to the server's filesystem. Solved by saving model weights as a plain PyTorch state dict (`model_state_dict.pth`) separately from MLflow, bypassing the artifact path issue entirely.
+
+**CloudPickle version mismatch**
+The model saved on the server (Linux, Python 3.12) could not be loaded locally (Windows, Python 3.10) due to incompatible CloudPickle versions used internally by MLflow. The fix was the same — saving a plain state dict instead of relying on MLflow's pickle-based model format.
+
+**CUDA warm-up latency**
+First inference request took ~1800ms due to CUDA kernel compilation. Subsequent requests dropped to ~7ms. Documented this behaviour in the dashboard so users are not alarmed by the first request being slow.
+
+**Docker inter-container networking**
+The Streamlit dashboard showed API as "Offline" inside Docker because `http://127.0.0.1:8000` resolves to the dashboard container itself, not the API container. Fixed by using the Docker service name `http://rossmann_api:8000` for container-to-container communication.
+
+**CI/CD path and permission errors**
+GitHub Actions runs in a clean environment with no `/app` directory, causing `PermissionError` when `prediction_logger.py` tried to create `/app/logs`. Fixed by using relative paths derived from `__file__` instead of hardcoded Docker paths, making the code environment-agnostic.
+
 ## Requirements
 
 - Python 3.10

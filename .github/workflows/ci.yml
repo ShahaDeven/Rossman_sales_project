@@ -112,6 +112,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      
+      - name: Install Python for artifacts
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu numpy scikit-learn
 
       - name: Create dummy artifacts for Docker build
         run: |
