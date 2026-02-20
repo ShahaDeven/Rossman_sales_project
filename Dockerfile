@@ -24,6 +24,8 @@ COPY model_state_dict.pth ./model_state_dict.pth
 # Create directory for prediction logs
 RUN mkdir -p /app/logs
 
+ENV PYTHONPATH=/app
+
 # Expose API port
 EXPOSE 8000
 
