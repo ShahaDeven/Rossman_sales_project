@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.venv/
+venv/
+.venv310/
+
+# Data & cache (large files, not needed in container)
+model/data/
+mlruns/
+
+# Development files
+.vs/
+.vscode/
+*.ipynb
+.git/
+.github/
+
+# Local databases (mounted as volume in docker-compose)
+predictions.db
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

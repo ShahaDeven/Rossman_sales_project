@@ -14,6 +14,7 @@ pydantic>=2.4.0
 
 # Monitoring dashboard (Step 3)
 streamlit>=1.28.0
+plotly==5.24.1
 
 # Utilities
 pyyaml>=6.0

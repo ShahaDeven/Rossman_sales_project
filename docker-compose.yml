@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  # FastAPI — ML Prediction API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rossmann_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - predictions_data:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import requests; requests.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  # Streamlit — Monitoring Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitoring
+    container_name: rossmann_dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  predictions_data:
