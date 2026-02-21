@@ -5,14 +5,14 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from api.schemas import (
+from .schemas import (
     PredictionRequest,
     PredictionResponse,
     HealthResponse,
     ModelInfoResponse,
 )
-from api.model_loader import model_loader
-from api.prediction_logger import prediction_logger
+from .model_loader import model_loader
+from .prediction_logger import prediction_logger
 from sklearn.preprocessing import LabelEncoder
 from fastapi.responses import RedirectResponse
 
