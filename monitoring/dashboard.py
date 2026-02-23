@@ -7,7 +7,6 @@ from datetime import datetime
 import time
 
 # CONFIG
-API_URL = "http://rossmann_api:8000"
 
 st.set_page_config(
     page_title="Rossmann LSTM — Monitoring",
@@ -18,7 +17,7 @@ st.set_page_config(
 # HELPERS
 def fetch(endpoint: str):
     try:
-        r = requests.get(f"{API_URL}{endpoint}", timeout=5)
+        r = requests.get(f"{api_url}{endpoint}", timeout=5)
         if r.status_code == 200:
             return r.json()
     except Exception:
@@ -28,7 +27,7 @@ def fetch(endpoint: str):
 
 def post_predict(payload: dict):
     try:
-        r = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
+        r = requests.post(f"{api_url}/predict", json=payload, timeout=10)
         if r.status_code == 200:
             return r.json(), None
         return None, r.json().get("detail", "Unknown error")
@@ -92,7 +91,10 @@ with st.sidebar:
         st.rerun()
     st.markdown("---")
     st.markdown("**API URL**")
-    st.code(API_URL)
+    api_url = st.sidebar.text_input(
+        "API URL",
+        value="http://localhost:8000"
+    )
     st.markdown("**Dashboard**")
     st.caption("Monitoring for Rossmann LSTM Forecasting Service")
 
