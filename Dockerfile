@@ -24,8 +24,6 @@ COPY model_state_dict.pth ./model_state_dict.pth
 # Create directory for prediction logs
 RUN mkdir -p /app/logs
 
-RUN find /app -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-
 ENV PYTHONPATH=/app
 
 # Expose API port

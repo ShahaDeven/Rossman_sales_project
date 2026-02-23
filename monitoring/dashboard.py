@@ -5,8 +5,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import time
+import os
 
 # CONFIG
+default_url = os.environ.get("API_URL", "http://localhost:8000")
 
 st.set_page_config(
     page_title="Rossmann LSTM — Monitoring",
@@ -91,10 +93,8 @@ with st.sidebar:
         st.rerun()
     st.markdown("---")
     st.markdown("**API URL**")
-    api_url = st.sidebar.text_input(
-        "API URL",
-        value="http://localhost:8000"
-    )
+    api_url = default_url
+    st.sidebar.code(api_url)
     st.markdown("**Dashboard**")
     st.caption("Monitoring for Rossmann LSTM Forecasting Service")
 
@@ -163,7 +163,7 @@ with tab_monitor:
                 xaxis_title="Hour", yaxis_title="Predictions",
                 margin=dict(l=0, r=0, t=40, b=0), height=320,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("No predictions logged yet.")
 
@@ -178,7 +178,7 @@ with tab_monitor:
                     xaxis_title="Latency (ms)", yaxis_title="Count",
                     margin=dict(l=0, r=0, t=40, b=0), height=320,
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info("Not enough data yet.")
         else:
@@ -204,7 +204,7 @@ with tab_monitor:
                 margin=dict(l=0, r=0, t=40, b=0), height=320,
                 hovermode="x unified",
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("No predictions logged yet.")
     else:
@@ -239,7 +239,7 @@ with tab_monitor:
                 df_table = df_table[cols].copy()
                 df_table["predicted_sales"] = df_table["predicted_sales"].apply(lambda x: f"€{x:,.2f}")
                 df_table["inference_ms"]    = df_table["inference_ms"].apply(lambda x: f"{x:.1f} ms")
-                st.dataframe(df_table, use_container_width=True, hide_index=True)
+                st.dataframe(df_table, width='stretch', hide_index=True)
         else:
             st.info("No predictions logged yet.")
 
@@ -353,7 +353,7 @@ with tab_try:
 
     st.divider()
 
-    if st.button("🔮 Predict Sales", type="primary", use_container_width=True):
+    if st.button("🔮 Predict Sales", type="primary", width='stretch'):
         payload = {
             "Store":               store,
             "DayOfWeek":           day_of_week,
